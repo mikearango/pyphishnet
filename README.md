@@ -1,27 +1,27 @@
-# phish-setlist-prediction
-A project to model the song choice of the band Phish during live shows on tour
+# PyPhishNet
+A simple Python Client library to interface with version 3 of the Phish.net API
 
 ### Create Conda environment
 
 To replicate the development environment, run the following command in your terminal:
 ```bash
-conda create --name phish --file requirements.txt --yes
+conda create --name phishnet --file requirements.txt --yes
 ```
 
-### Create Python kernel
+### Create iPython kernel
 
-Next, we need to add a new iPython kernel to jupyter based off of our conda environment if we want that environment to match our scripts. We can do this as follows:
+If you are planning on doing some prototyping in a notebook-based environment, you'll need to add a new iPython kernel to Jupyter based off of your conda environment to match your scripting environment. You can do this as follows:
 ```bash
-conda activate phish
+conda activate phishnet
 conda install nb_conda --yes
-python -m ipykernel install --user --name phish --display-name "phish"
+python -m ipykernel install --user --name phishnet --display-name "phish.net"
 ```
 
 ### Storing environment variables
 
-We need to store our API/AWS access credentials so they're not publicly accessible, but also in a way that ensures we can access them in our Conda environment. The following steps will set up a process for automatically setting/unsetting environment variables when our environment is activated: 
+To my knowledge, all of the v3 APIs from Phish.net require authentication except 1: blog get requests. The PyPhishNet package currently allows for API authentication in 2 different ways: reading in through stored environment variables or explicitly declaring during instantiation of the `PhishNetAPI` class. We recommend storing API access credentials as environment variables as you do not want to have your API key exposed to the public. This also ensures you can easily access them in your Conda environment. The following steps will set up a process for automatically setting/unsetting environment variables when your environment is activated: 
 
-1. Activate the Conda environment by running `conda activate phish`. 
+1. Activate the Conda environment by running `conda activate phishnet`. 
 2. Locate the directory for the conda environment by running `echo $CONDA_PREFIX`.
 3. Enter that directory and create these subdirectories and files:
 ```bash
@@ -42,55 +42,6 @@ export PHISH_API_KEY='your-secret-key'
 unset PHISH_API_KEY
 ```
 
-Now when you run `conda activate phish`, the environment variables you specify in `./etc/conda/activate.d/env_vars.sh` such as `PHISH_API_KEY` are set to the values you wrote into the file. When you run `conda deactivate`, those variables are erased.
+Now when you run `conda activate phishnet`, the environment variables you specify in `./etc/conda/activate.d/env_vars.sh` such as `PHISH_API_KEY` are set to the values you wrote into the file. When you run `conda deactivate`, those variables are erased.
 
 For more info, reference the [Conda documentation](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#saving-environment-variables) for saving environment variables. 
-
-### Configuring Boto for AWS management
-
-Boto is the Amazon Web Services (AWS) SDK for Python. It enables Python developers to create, configure, and manage AWS services, such as EC2 and S3. Boto can be configured in multiple ways, but we will be using the environment variable method for credential configuration. 
-
-Boto3 will check these environment variables for credentials:
-
-- `AWS_ACCESS_KEY_ID`: The access key for your AWS account.
-- `AWS_SECRET_ACCESS_KEY`: The secret key for your AWS account.
-- `AWS_SESSION_TOKEN`: The session key for your AWS account. This is only needed when you are using temporary credentials.
-
-Since we have permanent account credentials, we will only be storing the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. This follows the same process as above: 
-1. Edit `./etc/conda/activate.d/env_vars.sh` as follows:
-```bash
-export AWS_ACCESS_KEY_ID="your-access-key"
-export AWS_SECRET_ACCESS_KEY="your-secret-key"
-```
-2. Edit `./etc/conda/deactivate.d/env_vars.sh` as follows:
-```bash
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_ACCESS_KEY
-```
-
-For other methods of configuration, consult the [Boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html). 
-
-#### Usage
-
-For the majority of the AWS services, Boto offers *two* different ways to access the service APIs:
-
-- *Client*: low-level service access
-- *Resource*: higher-level object-oriented service access
-
-We will mainly be using Boto to interface with S3. You can use either of the two ways to interact with S3. 
-
-To connect to the *low-level* client interface, you must use Boto3’s `client()`. You then pass in the name of the service you want to connect to, in this case, S3:
-```python 
-import boto3
-s3_client = boto3.client('s3')
-```
-
-To connect to the high-level interface, you’ll follow a similar approach, but use `resource()`:
-```python 
-import boto3
-s3_resource = boto3.resource('s3')
-```
-
-*Reference: https://realpython.com/python-boto3-aws-s3/*
-
-*Examples: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-examples.html*
